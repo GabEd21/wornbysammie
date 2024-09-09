@@ -1,29 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { auth,provider } from './Config';
 import {signInWithPopup} from "firebase/auth"
-import Home from './Home';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
-    const [value,setValue] = useState('')
+    const [value,setValue] = useState('');
+    const navigate = useNavigate();
+
   const handleLogin = (event) => {
     event.preventDefault();
     // Logic for login button (blank for now)
   };
 
-  const handleForgotPassword = () => {
-    // Logic for forgot password button (blank for now)
-  };
 
   const handleSignin = () => {
     signInWithPopup(auth, provider)
       .then((data) => {
         setValue(data.user.email);
         localStorage.setItem("email", data.user.email);
+        navigate('/');
       })
       .catch((error) => {
         if (error.code === 'auth/popup-closed-by-user') {
           console.log("The popup was closed before completing the sign-in.");
-          // Optionally, you can provide a message to the user here
         } else {
           console.error("Sign-in error:", error);
         }
@@ -31,8 +30,13 @@ function Login() {
   };
 
   useEffect(()=>{
-    setValue(localStorage.getItem('email'))
-  })
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if(user){
+        navigate('/');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   return (
     <div className="login-container">
@@ -49,11 +53,12 @@ function Login() {
         <button type="submit" id="loginButton">Login</button>
       </form>
       <div>
-      {value?<Home/>:
+        <h1>   </h1>
+      </div>
+      <div>
       <button id="Sign in in Gmail" onClick={handleSignin}>
         Sign in using Gmail Account
       </button>
-        }
       </div>
     </div>
   );
